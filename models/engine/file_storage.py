@@ -8,9 +8,18 @@ class FileStorage:
     __file_path = 'file.json'
     __objects = {}
 
-    def all(self):
+    def all(self, cls=None):
         """Returns a dictionary of models currently in storage"""
-        return FileStorage.__objects
+        obj_dict = FileStorage.__objects
+        if cls is not None:
+            cls_dic = {}
+            for key, obj in obj_dict.items():
+                if type(cls) is str:
+                    cls = eval(cls)
+                if (type(obj) is cls):
+                    cls_dic[key] = obj
+            return cls_dic
+        return obj_dict
 
     def new(self, obj):
         """Adds new object to storage dictionary"""
@@ -36,10 +45,10 @@ class FileStorage:
         from models.review import Review
 
         classes = {
-                    'BaseModel': BaseModel, 'User': User, 'Place': Place,
-                    'State': State, 'City': City, 'Amenity': Amenity,
-                    'Review': Review
-                  }
+            'BaseModel': BaseModel, 'User': User, 'Place': Place,
+            'State': State, 'City': City, 'Amenity': Amenity,
+            'Review': Review
+        }
         try:
             temp = {}
             with open(FileStorage.__file_path, 'r') as f:
@@ -48,3 +57,16 @@ class FileStorage:
                     self.all()[key] = classes[val['__class__']](**val)
         except FileNotFoundError:
             pass
+
+    def delete(self, obj=None):
+        """ Deletes obj from __objects """
+        if obj is not None:
+            obj_dic = FileStorage.__objects
+            for key in obj_dic:
+                if (obj_dic[key] == obj):
+                    del obj_dic[key]
+                    break
+
+    def close(self):
+        """Calls the reload method of FileStorage"""
+        self.reload()
